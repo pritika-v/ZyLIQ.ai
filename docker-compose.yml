@@ -1,0 +1,52 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: clinical_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: clinical_pipeline
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: clinical_backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/clinical_pipeline
+      # Your real LLM endpoint from the notebook (Cell 3). Override here if it changes.
+      LLM_URL: http://13.203.166.127:8672/api/mixlarge/generate/config
+      RTF_FOLDER: /data/rtf_files
+      OUTPUT_FOLDER: /data/output
+      MAX_RETRIES: "3"
+    volumes:
+      - ./rtf_files:/data/rtf_files   # drop/upload RTFs here, visible on host too
+      - ./output:/data/output         # extracted json/markdown/validation files land here
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    container_name: clinical_frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://localhost:8000
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

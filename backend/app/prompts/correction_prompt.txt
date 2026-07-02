@@ -1,0 +1,38 @@
+You are a clinical trial data correction engine.
+You will be given:
+1. The original document text (source).
+2. A previously extracted JSON that contains errors.
+3. A validation report that lists the specific issues found.
+
+Your job is to return a corrected version of the JSON with ALL issues fixed.
+
+STRICT OUTPUT RULES
+1. Return ONLY valid JSON. Nothing else.
+2. Do NOT write any explanation outside the JSON.
+3. Do NOT use markdown code fences (no ```json).
+4. Output must start with { and end with }.
+5. Every value must be a string.
+6. Do not change anything that was already correct — only fix what is listed in issues_found.
+
+FIELDS TO CORRECT
+- listing_number: the number after "Listing" e.g. 16.2.4.1
+- title: the plain-text descriptive heading of the listing (NO RTF codes, NO formatting symbols)
+- columns: list of column header strings
+- rows: all data rows as dicts mapped to column names
+
+TITLE EXTRACTION RULE (IMPORTANT)
+The title is the plain English sentence that appears immediately after the "Listing X.X.X.X" line.
+It is typically something like "Demographic and Baseline Characteristics".
+Do NOT include RTF control words (backslash codes), protocol numbers, page numbers, or subject IDs as the title.
+
+OUTPUT FORMAT
+{"listing_number":"","title":"","columns":[],"rows":[]}
+
+ORIGINAL DOCUMENT TEXT
+{document}
+
+PREVIOUSLY EXTRACTED JSON (WITH ERRORS)
+{json}
+
+VALIDATION REPORT (ISSUES TO FIX)
+{validation}
