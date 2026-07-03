@@ -17,6 +17,24 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: clinical_pipeline
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/clinical_pipeline
+
     defaults:
       run:
         working-directory: backend
@@ -45,9 +63,11 @@ jobs:
           pip install -r requirements.txt
 
       - name: Verify FastAPI App
+        env:
+          OUTPUT_FOLDER: ./output
+          RTF_FOLDER: ./rtf_files
         run: |
           python -c "from app.main import app"
-
 
 
   frontend:
