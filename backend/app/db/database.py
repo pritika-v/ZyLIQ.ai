@@ -24,6 +24,7 @@ Database returns result
     │
     ▼
 Session closes
+
 """
 """
 ORM (Object Relational Mapping) is a technique that lets you work with database tables as Python classes and rows as Python objects, instead of writing SQL queries manually.
