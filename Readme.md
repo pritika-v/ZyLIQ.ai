@@ -11,7 +11,8 @@ The project consists of:
 - **Database:** PostgreSQL
 - **LLM:** Mistral
 - **Containerization:** Docker & Docker Compose
-- **CI/CD:** GitHub Actions + Docker Hub
+- **Cloud Deployment:** AWS EC2
+- **CI/CD:** GitHub Actions → Docker Hub → AWS EC2 (Automatic Deployment)
 
 ---
 
@@ -528,34 +529,93 @@ The CI pipeline verifies that:
 
 ---
 
-# Partial Continuous Deployment (Partial CD)
+# Continuous Deployment (CD)
 
-After the CI checks pass, the workflow continues with Docker image creation.
+After the Continuous Integration (CI) checks pass successfully, GitHub Actions automatically deploys the latest version of the application to an AWS EC2 instance.
 
-### Partial CD Steps
+## Deployment Flow
 
 ```
-CI Passed
-      │
-      ▼
+Developer Pushes Code
+        │
+        ▼
+Backend Checks
+        │
+        ▼
+Frontend Build
+        │
+        ▼
 Build Backend Docker Image
-      │
-      ▼
+        │
+        ▼
 Build Frontend Docker Image
-      │
-      ▼
-Login to Docker Hub
-      │
-      ▼
-Push Backend Image
-      │
-      ▼
-Push Frontend Image
+        │
+        ▼
+Push Images to Docker Hub
+        │
+        ▼
+SSH into AWS EC2
+        │
+        ▼
+docker compose pull
+        │
+        ▼
+docker compose up -d
+        │
+        ▼
+Restart Updated Containers
+        │
+        ▼
+Application Updated Automatically
 ```
 
-The latest Docker images are uploaded to Docker Hub, making them available for deployment to cloud platforms such as AWS EC2.
+The EC2 instance never builds Docker images locally.
 
----
+Instead, it always pulls the latest Docker images from Docker Hub and recreates the running containers using Docker Compose. This makes deployments faster, more reliable, and consistent across environments.
+
+The deployment is fully automated using GitHub Actions and executes after every successful push to the `main` branch.
+
+# AWS Deployment
+
+The application has been successfully deployed to an AWS EC2 instance using Docker Compose.
+
+The deployed architecture consists of:
+
+```
+Internet
+     │
+     ▼
+AWS EC2
+     │
+     ├── React Frontend Container
+     ├── FastAPI Backend Container
+     └── PostgreSQL Container
+```
+
+The backend and frontend Docker images are automatically downloaded from Docker Hub during deployment.
+
+## Public Access
+
+During development, the application was accessible using the EC2 public IP.
+
+Example:
+
+```
+Frontend
+http://<EC2_PUBLIC_IP>:5173
+
+Backend API
+http://<EC2_PUBLIC_IP>:8000/docs
+```
+
+> **Note**
+>
+> To minimize AWS costs, the EC2 instance is intentionally stopped after deployment verification.
+>
+> Therefore, the public IP shown in screenshots or previous documentation may no longer be active.
+>
+> The application can be brought back online at any time by starting the EC2 instance and redeploying the latest Docker containers.
+
 
 # Important Project Files
 
@@ -591,5 +651,7 @@ The latest Docker images are uploaded to Docker Hub, making them available for d
 | Database | PostgreSQL |
 | ORM | SQLAlchemy |
 | Containerization | Docker, Docker Compose |
-| CI/CD | GitHub Actions, Docker Hub |
 | Version Control | Git, GitHub |
+| CI/CD | GitHub Actions |
+| Container Registry | Docker Hub |
+| Cloud Platform | AWS EC2 |
